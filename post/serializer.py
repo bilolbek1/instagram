@@ -4,6 +4,8 @@ from post.models import PostLike, PostComment, CommentLike
 from users.models import UserModel
 
 
+
+
 class UserSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
 
@@ -12,6 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'photo')
 
 
+# POST UCHUN YOZILGAN SERIALIZER
 class PostSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     author = UserSerializer(read_only=True)
@@ -44,6 +47,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 
+# COMMENTARIYA UCHUN YOZIGAN SERIALIZER
 class CommentSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     author = UserSerializer(read_only=True)
@@ -77,6 +81,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 
+# COMMENTARIYAGA LIKE QOLDIRISH UCHUN YOZILGAN SERIALIZER
 class CommentLikeSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     author = UserSerializer(read_only=True)
@@ -86,6 +91,7 @@ class CommentLikeSerializer(serializers.ModelSerializer):
         fields = ('id', 'author', 'comment')
 
 
+# POSTGA LIKE QOLDIRISH UCHUN YOZILGAN SERIALIZER
 class PostLikeSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     author = UserSerializer(read_only=True)

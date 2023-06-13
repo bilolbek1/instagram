@@ -9,6 +9,7 @@ from shared.custom_pagination import PostListPagination
 
 
 
+# POSTLARNI CHIQARISH UCHUN YOZILGAN VIEW
 class PostListApiView(generics.ListAPIView):
     serializer_class = PostSerializer
     permission_classes = [AllowAny, ]
@@ -18,6 +19,7 @@ class PostListApiView(generics.ListAPIView):
         return Post.objects.all()
 
 
+# POST YARATISH UCHUN YOZILGAN VIEW
 class PostCreateView(generics.CreateAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated, ]
@@ -26,6 +28,7 @@ class PostCreateView(generics.CreateAPIView):
         serializer.save(author=self.request.user)
 
 
+# POSTNI TAHRIRLASH VA O'CHIRISH UCHUN YOZILGAN VIEW
 class PostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -55,6 +58,30 @@ class PostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
             'message': 'Post o\'chirildi'
             }
         )
+
+
+
+# POST UCHUN YOZILGAN COMMENTARIYALARNI KO'RISH UCHUN YOZILGAN VIEW
+
+class CommentListView(generics.ListAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [AllowAny, ]
+
+    def get_queryset(self):
+        post_id = self.kwargs['pk']
+        queryset = PostComment.objects.filter(post__id=post_id)
+        return queryset
+
+
+# POSTGA COMMENTARIYA QOLDIRISH UCHUN YA'NI COMMENTARIYA YARATISH UCHUN YOZILGAN VIEW
+class CreateCommentView(generics.CreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated ,]
+
+    def perform_create(self, serializer):
+        post_id = self.kwargs['pk']
+        serializer.save(author=self.request.user, post_id=post_id)
+
 
 
 
