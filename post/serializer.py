@@ -58,7 +58,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostComment
         fields = ('id', 'author', 'replies', 'me_liked', 'likes_count', 'parent', 'comment',
-                  'created_time')
+                  'created_time', 'post')
         extra_kwargs = {'image': {"required": False}}
 
 
@@ -99,6 +99,7 @@ class PostLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostLike
         fields = ('id', 'author', 'post')
+
 
 
 

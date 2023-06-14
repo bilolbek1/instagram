@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Post, PostLike, PostComment, CommentLike
 from rest_framework import generics, status
@@ -76,7 +77,7 @@ class CommentListView(generics.ListAPIView):
 # POSTGA COMMENTARIYA QOLDIRISH UCHUN YA'NI COMMENTARIYA YARATISH UCHUN YOZILGAN VIEW
 class CreateCommentView(generics.CreateAPIView):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated ,]
+    permission_classes = [IsAuthenticated, ]
 
     def perform_create(self, serializer):
         post_id = self.kwargs['pk']
@@ -84,19 +85,79 @@ class CreateCommentView(generics.CreateAPIView):
 
 
 
+# POSTGA BOSILGAN LIKELARNI CHIQARISH
+
+class PostLikeView(generics.ListAPIView):
+    serializer_class = PostLikeSerializer
+    permission_classes = [AllowAny, ]
+
+    def get_queryset(self):
+        post_id = self.kwargs['pk']
+        return PostLike.objects.filter(post_id=post_id)
+
+
+# COMMENTGA BOSILGAN LIKELARNI CHIQARISH
+
+class CommentLikeView(generics.ListAPIView):
+    serializer_class = CommentLikeSerializer
+    permission_classes = [AllowAny, ]
+
+    def get_queryset(self):
+        comment_id = self.kwargs['pk']
+        return CommentLike.objects.filter(comment_id=comment_id)
+
+
+# AYNI 1TA COMMENTNI CHIQARISH
+
+class CommentRetrieveView(generics.RetrieveAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [AllowAny, ]
+    queryset = PostComment.objects.all()
 
 
 
 
 
+# POSTGA LIKE BOSISH VA O'CHIRISH UCHUN VIEW
 
+class PostClickLikeView(APIView):
 
+    def post(self, request, pk):
+        try:
+            post_like = PostLike.objects.create(author=self.request.user, post_id=pk)
+            serializer = PostLikeSerializer(post_like)
+            data = {
+                'success': True,
+                "message": "Postga like bosildi",
+                'data': serializer.data
+            }
+            return Response(data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            data = {
+                'success': False,
+                'message': str(e),
+                'data': None
+            }
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request, pk):
+        try:
+            post_like = PostLike.objects.get(author=self.request.user, post_id=pk)
+            post_like.delete()
+            data = {
+                'success': True,
+                'message': 'Like o\'chirildi',
+                "data": None
+            }
+            return Response(data, status=status.HTTP_204_NO_CONTENT)
 
-
-
-
-
+        except Exception as e:
+            data = {
+                'success': False,
+                'message': str(e),
+                'data': None
+            }
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
 
