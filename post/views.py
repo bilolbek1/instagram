@@ -124,41 +124,47 @@ class PostClickLikeView(APIView):
 
     def post(self, request, pk):
         try:
-            post_like = PostLike.objects.create(author=self.request.user, post_id=pk)
-            serializer = PostLikeSerializer(post_like)
-            data = {
-                'success': True,
-                "message": "Postga like bosildi",
-                'data': serializer.data
-            }
-            return Response(data, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            data = {
-                'success': False,
-                'message': str(e),
-                'data': None
-            }
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        try:
             post_like = PostLike.objects.get(author=self.request.user, post_id=pk)
             post_like.delete()
             data = {
                 'success': True,
-                'message': 'Like o\'chirildi',
-                "data": None
+                "message": "Like o'chirildi",
             }
             return Response(data, status=status.HTTP_204_NO_CONTENT)
 
-        except Exception as e:
+        except PostLike.DoesNotExist:
+            post_like = PostLike.objects.create(author=self.request.user, post_id=pk)
+            serializer = PostLikeSerializer(post_like)
             data = {
-                'success': False,
-                'message': str(e),
-                'data': None
+                'success': True,
+                'message': 'Postga like qo\'shildi',
+                'data': serializer.data
             }
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data, status=status.HTTP_201_CREATED)
 
+
+# COMMENTGA LIKE BOSISH VA O'CHIRISH UCHUN VIEW
+
+class CommentClickLikeView(APIView):
+
+    def post(self, request, pk):
+        try:
+            comment_like = CommentLike.objects.get(author=self.request.user, comment_id=pk)
+            comment_like.delete()
+            data = {
+                "success": True,
+                "message": "Commentdan like o'chirildi",
+            }
+            return Response(data, status=status.HTTP_204_NO_CONTENT)
+        except CommentLike.DoesNotExist:
+            comment_like = CommentLike.objects.create(author=self.request.user, comment_id=pk)
+            serializer = CommentLikeSerializer(comment_like)
+            data = {
+                "success": True,
+                "message": 'Commentga like bosildi',
+                "data": serializer.data
+            }
+            return Response(data, status=status.HTTP_201_CREATED)
 
 
 
