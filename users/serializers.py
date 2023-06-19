@@ -210,7 +210,7 @@ class LoginSerializer(TokenObtainPairSerializer):
             user = self.get_user(email__iexact=user_input)
             username = user.username
         elif check_user_type(user_input) == 'phone_number':
-            user = self.get_user(phone_number__iexact=user_input)
+            user = self.get_user(phone_number=user_input)
             username = user.username
 
         else:
@@ -229,7 +229,7 @@ class LoginSerializer(TokenObtainPairSerializer):
         if current_user is not None and current_user.auth_step in [ONE, CODE_STEP]:
             raise ValidationError(
                 {
-                    "success": True,
+                    "success": False,
                     'message': "Siz ro'yxatdan to'liq o'tmagansiz !"
                 }
             )
@@ -249,8 +249,8 @@ class LoginSerializer(TokenObtainPairSerializer):
         if self.user.auth_step in [ONE, CODE_STEP]:
             raise PermissionDenied("Sizda login qilish uchun ruxsat yo'q !")
         data = self.user.token()
-        self.fields["auth_step"] = self.user.auth_step
-        self.fields["full_name"] = self.user.fullname
+        data["auth_step"] = self.user.auth_step
+        data["full_name"] = self.user.fullname
         return data
 
 
@@ -266,63 +266,6 @@ class LoginSerializer(TokenObtainPairSerializer):
 
 
 
-# from rest_framework import serializers
-# from django.contrib.auth import authenticate
-# from django.core.exceptions import ValidationError
-# from .models import UserModel
-#
-#
-# class LoginSerializer(serializers.Serializer):
-#
-#     def __init__(self, *args, **kwargs):
-#         super(LoginSerializer, self).__init__(*args, **kwargs)
-#         self.fields['user_input'] = serializers.CharField(required=True)
-#         self.fields['password'] = serializers.CharField(required=False, write_only=True)
-#         self.fields['value'] = serializers.CharField(required=False, read_only=True)
-#
-#     def auth_validate(self, data):
-#         user_input = data.get('user_input')
-#         password = data.get('password')
-#
-#
-#         user = UserModel.objects.filter(username__iexact=user_input).first()
-#         if check_user_type(user_input) == 'username':
-#             value = 'username'
-#         elif check_user_type(user_input) == 'email':
-#             value = 'email'
-#         elif check_user_type(user_input) == "phone_number":
-#             value = "phone_number"
-#         else:
-#             raise ValidationError(
-#                 {
-#                     "success": False,
-#                     "message": "Siz email, telefon raqamingiz yoki usernamengizni kiritishingiz kerak."
-#                 }
-#             )
-#
-#
-#         user = authenticate(username=user.username, password=password)
-#         if user.auth_step not in [DONE, PHOTO_STEP]:
-#             raise ValidationError("Sizda login qilish uchun ruxsat yo'q!")
-#
-#         if not user:
-#             raise ValidationError("Kirish ma'lumotlari noto'g'ri!")
-#
-#         self.user = user
-#         return value
-#
-#     def validate(self, data):
-#         self.auth_validate(data)
-#         return data
-#
-#     def to_representation(self, instance):
-#         token = self.user.token()
-#         return {
-#             'token': token,
-#             'auth_step': self.user.auth_step,
-#             'full_name': self.user.fullname
-#         }
-
 
 
 
@@ -333,13 +276,14 @@ class LoginSerializer(TokenObtainPairSerializer):
 
 class LoginRefreshTokenSerializer(TokenRefreshSerializer):
 
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        access_token_instance = AccessToken('access')
+    def validate(self, data):
+        data = super().validate(data)
+        access_token_instance = AccessToken(data['access'])
         user_id = access_token_instance['user_id']
         user = get_object_or_404(UserModel, id=user_id)
         update_last_login(None, user)
         return data
+
 
 
 
@@ -348,7 +292,7 @@ class LoginRefreshTokenSerializer(TokenRefreshSerializer):
 
 
 class LogoutSerializer(serializers.Serializer):
-    token = serializers.CharField()
+    refresh = serializers.CharField()
 
 
 
@@ -379,7 +323,7 @@ class ForgotPasswordSerializer(serializers.Serializer):
 
 
 class ResetPasswordSerializer(serializers.ModelSerializer):
-    id =serializers.UUIDField(read_only=True)
+    id = serializers.UUIDField(read_only=True)
     password = serializers.CharField(max_length=8, write_only=True, required=True)
     confirm_password = serializers.CharField(max_length=8, write_only=True, required=True)
 

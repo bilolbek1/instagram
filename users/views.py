@@ -174,13 +174,12 @@ class LoginView(TokenObtainPairView):
 # REFRESH TOKEN ORQALI ACCESS TOKENNI YANGILASH UCHUN YOZILGAN VIEW
 
 
-class RefreshTokenView(TokenRefreshView):
+class UpdateTokenView(TokenRefreshView):
     serializer_class = LoginRefreshTokenSerializer
 
 
 
 # LOGOUT UCHUN YOZILGAN VIEW
-
 
 
 class LogoutView(APIView):
@@ -195,12 +194,12 @@ class LogoutView(APIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
             data = {
-                'success': True,
-                'message': "Siz muvaffaqiyatli tarzda accountingizdan chiqdingiz"
+                "success": True,
+                "message": "Siz muvaffaqqiyatli tarzda accountingizdan chiqdingiz"
             }
-            Response(data, status=205)
+            return Response(data, status=205)
         except TokenError:
-            Response(status=400)
+            return Response(status=400)
 
 
 
@@ -227,8 +226,8 @@ class ForgotPasswordView(APIView):
                 'success': True,
                 'message': 'Tasdiqlash kodingiz muvaffaqiyatli yuborildi',
                 'access': user.token()['access'],
-                "refresh": user.token()['refresh'],
-                "auth_dtep": user.auth_step
+                "refresh": user.token()['refresh_token'],
+                "auth_step": user.auth_step
             }, status=200
         )
 
